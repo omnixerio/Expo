@@ -5,37 +5,44 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class DiffuseShader {
 	static final public ShaderProgram createShadowShader() {
-		final String vertexShader = "attribute vec4 a_position;\n" //
-				+ "attribute vec2 a_texCoord;\n" //
-				+ "varying vec2 v_texCoords;\n" //
-				+ "\n" //
-				+ "void main()\n" //
-				+ "{\n" //
-				+ "   v_texCoords = a_texCoord;\n" //
-				+ "   gl_Position = a_position;\n" //
-				+ "}\n";
+        final String vertexShader = """
+                #version 330
+                
+                in vec4 a_position;
+                in vec2 a_texCoord;
+                out vec2 v_texCoords;
+                
+                void main()
+                {
+                   v_texCoords = a_texCoord;
+                   gl_Position = a_position;
+                }
+                """;
 
-		// this is always perfect precision
-		final String fragmentShader = "#ifdef GL_ES\n" //
-				+ "precision lowp float;\n" //
-				+ "#define MED mediump\n"				
-				+ "#else\n"				
-				+ "#define MED \n"
-				+ "#endif\n" //
-				+ "varying MED vec2 v_texCoords;\n" //
-				+ "uniform sampler2D u_texture;\n" //
-				+ "uniform  vec4 ambient;\n"
-					+ "void main()\n"//
-				+ "{\n" //
-				+ "gl_FragColor.rgb = (ambient.rgb + texture2D(u_texture, v_texCoords).rgb);\n"
-				+ "gl_FragColor.a = 1.0;\n"
-					+ "}\n";
+        final String fragmentShader = """
+                #version 330
+                
+                #ifdef GL_ES
+                precision lowp float;
+                #define MED mediump
+                #else
+                #define MED\s
+                #endif
+                in MED vec2 v_texCoords;
+                uniform sampler2D u_texture;
+                uniform  vec4 ambient;
+                
+                out vec4 fragColor;
+                void main()
+                {
+                fragColor.rgb = (ambient.rgb + texture(u_texture, v_texCoords).rgb);
+                fragColor.a = 1.0;
+                }
+                """.formatted();
 		ShaderProgram.pedantic = false;
 		ShaderProgram shadowShader = new ShaderProgram(vertexShader,
 					fragmentShader);
 		if (!shadowShader.isCompiled()) {
-			shadowShader = new ShaderProgram("#version 330 core\n" +vertexShader,
-					"#version 330 core\n" +fragmentShader);
 			if(!shadowShader.isCompiled()){
 				Gdx.app.log("ERROR", shadowShader.getLog());
 			}

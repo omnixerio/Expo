@@ -14,52 +14,57 @@ public class LightWithNormalMapShader {
             gamma = "sqrt";
 
         final String vertexShader =
-                "attribute vec4 vertex_positions;\n" //
-                        + "attribute vec4 quad_colors;\n" //
-                        + "attribute float s;\n"
-                        + "uniform mat4 u_projTrans;\n" //
-                        + "varying vec4 v_color;\n" //
-                        + "void main()\n" //
-                        + "{\n" //
-                        + "   v_color = s * quad_colors;\n" //
-                        + "   gl_Position =  u_projTrans * vertex_positions;\n" //
-                        + "}\n";
-        final String fragmentShader = "#ifdef GL_ES\n" //
-                + "precision lowp float;\n" //
-                + "#define MED mediump\n"
-                + "#else\n"
-                + "#define MED \n"
-                + "#endif\n" //
-                + "varying vec4 v_color;\n" //
-                + "uniform sampler2D u_normals;\n" //
-                + "uniform vec3 u_lightpos;\n" //
-                + "uniform vec2 u_resolution;\n" //
-                + "uniform float u_intensity;\n" //
-                + "uniform vec3 u_falloff;"
-                + "void main()\n"//
-                + "{\n" //
-                + "  vec2 screenPos = gl_FragCoord.xy / u_resolution.xy;\n"
-                + "  vec4 NormalMapTexture = texture2D(u_normals, screenPos);\n"
-                + "  vec3 NormalMap = NormalMapTexture.rgb;\n"
-                + "  float alpha = NormalMapTexture.a;\n"
-                + "  vec3 LightDir = vec3(u_lightpos.xy - screenPos, u_lightpos.z);\n"
+                """
+                #version 330
+                
+                in vec4 vertex_positions;
+                in vec4 quad_colors;
+                in float s;
+                uniform mat4 u_projTrans;
+                out vec4 v_color;
+                void main()
+                {
+                   v_color = s * quad_colors;
+                   gl_Position =  u_projTrans * vertex_positions;
+                }
+                """;
 
-                + "  LightDir.x *= u_resolution.x / u_resolution.y;\n"
-                + "  float D = length(LightDir);\n"
-                + "  float Attenuation = 1.0 / (u_falloff.x + (u_falloff.y*D) + (u_falloff.z*D*D));\n"
-
-                + "  vec3 N = normalize(NormalMap * 2.0 - 1.0);\n"
-                + "  vec3 L = normalize(LightDir);\n"
-                + "  float maxProd = (max(dot(N, L), 0.0) * Attenuation - 1.0) * alpha + 1.0;\n"
-                + "  gl_FragColor = "+gamma+"(v_color * maxProd * u_intensity);\n" //
-                + "}";
+        final String fragmentShader = """
+                #version 330
+                
+                #ifdef GL_ES
+                precision lowp float;
+                #define MED mediump
+                #else
+                #define MED\s
+                #endif
+                in vec4 v_color;
+                uniform sampler2D u_normals;
+                uniform vec3 u_lightpos;
+                uniform vec2 u_resolution;
+                uniform float u_intensity;
+                uniform vec3 u_falloff;
+                
+                out vec4 fragColor;
+                void main() {
+                  vec2 screenPos = gl_FragCoord.xy / u_resolution.xy;
+                  vec4 NormalMapTexture = texture(u_normals, screenPos);
+                  vec3 NormalMap = NormalMapTexture.rgb;
+                  float alpha = NormalMapTexture.a;
+                  vec3 LightDir = vec3(u_lightpos.xy - screenPos, u_lightpos.z);
+                  LightDir.x *= u_resolution.x / u_resolution.y;
+                  float D = length(LightDir);
+                  float Attenuation = 1.0 / (u_falloff.x + (u_falloff.y*D) + (u_falloff.z*D*D));
+                  vec3 N = normalize(NormalMap * 2.0 - 1.0);
+                  vec3 L = normalize(LightDir);
+                  float maxProd = (max(dot(N, L), 0.0) * Attenuation - 1.0) * alpha + 1.0;
+                  fragColor = %s(v_color * maxProd * u_intensity);
+                }""".formatted(gamma);
 
         ShaderProgram.pedantic = false;
         ShaderProgram lightShader = new ShaderProgram(vertexShader,
                 fragmentShader);
         if (!lightShader.isCompiled()) {
-            lightShader = new ShaderProgram("#version 330 core\n" +vertexShader,
-                    "#version 330 core\n" +fragmentShader);
             if(!lightShader.isCompiled()){
                 Gdx.app.log("ERROR", lightShader.getLog());
             }

@@ -11,6 +11,9 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.Os;
+import com.badlogic.gdx.utils.SharedLibraryLoader;
 import dev.michey.expo.assets.ExpoAssets;
 import dev.michey.expo.logic.container.ExpoClientContainer;
 import dev.michey.expo.logic.entity.arch.ClientEntity;
@@ -79,7 +82,7 @@ public class RenderContext {
     public float waterSpeed = 1.1f;//0.8f;
     public float brightness = 0.5f;
     public float contrast = 0.5f;
-    public float[] waterColor = new float[] {0.0f, 163f / 255f, 1.0f};
+    public float[] waterColor = new float[]{0.0f, 163f / 255f, 1.0f};
     public float waterDelta;
     public float waterAlpha = 0.6f;
     public float waterSkewX = 1.75f;//1.5f;
@@ -200,13 +203,13 @@ public class RenderContext {
     public float gradientMultiplier;
 
     public RenderContext() {
-        batch = new SpriteBatch();
+        batch = createBatch();
         polygonTileBatch = new PolygonTileBatch();
-        hudBatch = new SpriteBatch();
-        chunkRenderer = new ShapeRenderer();
+        hudBatch = createBatch();
+        chunkRenderer = createShapeRenderer();
         expoCamera = new ExpoCamera();
         arraySpriteBatch = new ArrayTextureSpriteBatch(8191, 4096, 4096, 32, GL30.GL_NEAREST, GL30.GL_NEAREST);
-        aoBatch = new SpriteBatch();
+        aoBatch = createBatch();
         globalGlyph = new GlyphLayout();
 
         {
@@ -256,26 +259,26 @@ public class RenderContext {
             m5x7_border_all = new BitmapFont[5];
             m5x7_shadow_all = new BitmapFont[5];
 
-            for(int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++) {
                 parameter.size = 16 + i * 16;
                 m5x7_all[i] = generator.generateFont(parameter);
                 m5x7_all[i].getData().markupEnabled = true;
                 m5x7_all[i].getData().setLineHeight(11 * (i + 1));
                 m5x7_all[i].setUseIntegerPositions(false);
-                if(i == 0) m5x7_base = m5x7_all[i];
+                if (i == 0) m5x7_base = m5x7_all[i];
             }
 
             parameter.shadowOffsetX = 1;
             parameter.shadowOffsetY = 1;
             parameter.shadowColor = new Color(0f, 0f, 0f, 1.0f);
 
-            for(int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++) {
                 parameter.size = 16 + i * 16;
                 m5x7_shadow_all[i] = generator.generateFont(parameter);
                 m5x7_shadow_all[i].getData().markupEnabled = true;
                 m5x7_shadow_all[i].getData().setLineHeight(11 * (i + 1));
                 m5x7_shadow_all[i].setUseIntegerPositions(false);
-                if(i == 0) m5x7_shadowed = m5x7_shadow_all[i];
+                if (i == 0) m5x7_shadowed = m5x7_shadow_all[i];
             }
 
             parameter.shadowOffsetX = 0;
@@ -284,13 +287,13 @@ public class RenderContext {
             parameter.borderColor = new Color(48f / 255f, 48f / 255f, 48f / 255f, 0.6f);
             parameter.spaceX = -1;
 
-            for(int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++) {
                 parameter.size = 16 + i * 16;
                 m5x7_border_all[i] = generator.generateFont(parameter);
                 m5x7_border_all[i].getData().markupEnabled = true;
                 m5x7_border_all[i].getData().setLineHeight(11 * (i + 1));
                 m5x7_border_all[i].setUseIntegerPositions(false);
-                if(i == 0) m5x7_bordered = m5x7_border_all[i];
+                if (i == 0) m5x7_bordered = m5x7_border_all[i];
             }
 
             generator.dispose();
@@ -302,23 +305,23 @@ public class RenderContext {
             m6x11_all = new BitmapFont[5];
             m6x11_border_all = new BitmapFont[5];
 
-            for(int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++) {
                 parameter.size = 16 + i * 16;
                 m6x11_all[i] = generator.generateFont(parameter);
                 m6x11_all[i].getData().markupEnabled = true;
                 m6x11_all[i].setUseIntegerPositions(false);
-                if(i == 0) m6x11_base = m6x11_all[i];
+                if (i == 0) m6x11_base = m6x11_all[i];
             }
 
             parameter.borderWidth = 1;
             parameter.borderColor = new Color(48f / 255f, 48f / 255f, 48f / 255f, 0.6f);
             parameter.spaceX = -1;
 
-            for(int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++) {
                 parameter.size = 16 + i * 16;
                 m6x11_border_all[i] = generator.generateFont(parameter);
                 m6x11_border_all[i].setUseIntegerPositions(false);
-                if(i == 0) m6x11_bordered = m6x11_border_all[i];
+                if (i == 0) m6x11_bordered = m6x11_border_all[i];
             }
 
             generator.dispose();
@@ -386,6 +389,89 @@ public class RenderContext {
         INSTANCE = this;
     }
 
+    public static ShapeRenderer createShapeRenderer() {
+        return new ShapeRenderer(5000, createDefaultShader());
+    }
+
+    /** Returns a new instance of the default shader used by SpriteBatch for GL2 when no shader is specified. */
+    public static ShaderProgram createDefaultShader() {
+        ShaderProgram program = new ShaderProgram(
+                """
+                        #version 330
+                        
+                        in vec4 a_position;
+                        in vec4 a_color;
+                        uniform mat4 u_projModelView;
+                        out vec4 v_col;
+                        void main() {
+                           gl_Position = u_projModelView * a_position;
+                           v_col = a_color;
+                           v_col.a *= 255.0 / 254.0;
+                           gl_PointSize = 1.0;
+                        }
+                        """,
+                """
+                        #version 330
+                        
+                        in vec4 v_col;
+                        out vec4 fragColor;
+                        
+                        void main() {
+                           fragColor = v_col;
+                        }
+                        """);
+        if (!program.isCompiled())
+            throw new GdxRuntimeException("Error compiling shader: " + program.getLog());
+        return program;
+    }
+
+    public static SpriteBatch createBatch() {
+        if (SharedLibraryLoader.os == Os.MacOsX) {
+            return new SpriteBatch(1000, createShader());
+        }
+        return new SpriteBatch();
+    }
+
+    public static ShaderProgram createShader() {
+        String vertexShader = """
+                #version 330
+                
+                in vec4 a_position;
+                in vec4 a_color;
+                in vec2 a_texCoord0;
+                uniform mat4 u_projTrans;
+                out vec4 v_color;
+                out vec2 v_texCoords;
+                
+                void main()
+                {
+                   v_color = a_color;
+                   v_color.a = v_color.a * (255.0/254.0);
+                   v_texCoords = a_texCoord0;
+                   gl_Position =  u_projTrans * a_position;
+                }
+                """;
+        String fragmentShader = """
+                #version 330
+                
+                in vec4 v_color;
+                in vec2 v_texCoords;
+                uniform sampler2D u_texture;
+                
+                out vec4 fragColor;
+                
+                void main()
+                {
+                  fragColor = v_color * texture(u_texture, v_texCoords);
+                }""";
+        ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
+        if (!shader.isCompiled()) {
+            throw new GdxRuntimeException("Error compiling shader: " + shader.getLog());
+        } else {
+            return shader;
+        }
+    }
+
     /** Base update method to update all important timers. */
     public void update() {
         frameId++;
@@ -396,7 +482,7 @@ public class RenderContext {
         aspectRatio = Gdx.graphics.getWidth() / (float) Gdx.graphics.getHeight();
         aspectRatioInverse = Gdx.graphics.getHeight() / (float) Gdx.graphics.getWidth();
 
-        if(deltaOneSecond >= 1.0f) {
+        if (deltaOneSecond >= 1.0f) {
             deltaOneSecond -= 1.0f;
         }
 
@@ -419,7 +505,7 @@ public class RenderContext {
         mouseMoved = (oldMouseX != mouseX) || (oldMouseY != mouseY) || (oldCameraX != cameraX) || (oldCameraY != cameraY) || (zoomNotify);
         zoomNotify = false;
 
-        if(mouseMoved) {
+        if (mouseMoved) {
             mouseWorldX = InputUtils.getMouseWorldX();
             mouseWorldY = InputUtils.getMouseWorldY();
 
@@ -427,7 +513,7 @@ public class RenderContext {
             mouseTileY = ExpoShared.posToTile(mouseWorldY);
 
             tileMoved = (oldTileX != mouseTileX) || (oldTileY != mouseTileY);
-            if(tileMoved) queuedTileMoved = true;
+            if (tileMoved) queuedTileMoved = true;
 
             mouseWorldGridX = ExpoShared.tileToPos(mouseTileX);
             mouseWorldGridY = ExpoShared.tileToPos(mouseTileY);
@@ -445,10 +531,10 @@ public class RenderContext {
 
             ClientPlayer p = ClientPlayer.getLocalPlayer();
 
-            if(p != null) {
+            if (p != null) {
                 mousePlayerAngle = GenerationUtils.angleBetween360(p.playerReachCenterX, p.playerReachCenterY, mouseWorldX, mouseWorldY);
 
-                if(p.selector != null) {
+                if (p.selector != null) {
                     p.selector.invalidCurve = true;
                 }
             }
@@ -463,9 +549,9 @@ public class RenderContext {
 
         mouseDirection = mouseX < (Gdx.graphics.getWidth() * 0.5f) ? 0 : 1;
 
-        if(ItemMapper.get() == null) return;
+        if (ItemMapper.get() == null) return;
 
-        for(ItemRender ir : ItemMapper.get().getDynamicAnimationList()) {
+        for (ItemRender ir : ItemMapper.get().getDynamicAnimationList()) {
             TextureRegion old = ir.useTextureRegion;
 
             ir.animationDelta += delta;
@@ -477,7 +563,7 @@ public class RenderContext {
             ir.updatedAnimation = old != ir.useTextureRegion;
         }
 
-        for(ItemRender ir : ItemMapper.get().getDynamicParticleEmitterList()) {
+        for (ItemRender ir : ItemMapper.get().getDynamicParticleEmitterList()) {
             ir.particleEmitter.update(delta);
         }
     }
@@ -488,7 +574,7 @@ public class RenderContext {
         float ox = (tileW - itemRenders[0].useWidth) * 0.5f * ui.uiScale;
         float oy = (tileH - itemRenders[0].useHeight) * 0.5f * ui.uiScale;
 
-        for(ItemRender ir : itemRenders) {
+        for (ItemRender ir : itemRenders) {
             TextureRegion tr = ir.useTextureRegion;
             float centeredTextureX = ((tileW - ir.useWidth) * 0.5f * ui.uiScale);
             float centeredTextureY = ((tileH - ir.useHeight) * 0.5f * ui.uiScale);
@@ -514,7 +600,7 @@ public class RenderContext {
     public void drawItemTextures(ItemRender[] itemRenders, float x, float y, float tileW, float tileH) {
         PlayerUI ui = PlayerUI.get();
 
-        for(ItemRender ir : itemRenders) {
+        for (ItemRender ir : itemRenders) {
             TextureRegion tr = ir.useTextureRegion;
             float centeredTextureX = (tileW - itemRenders[0].useWidth) * 0.5f * ui.uiScale;
             float centeredTextureY = (tileH - itemRenders[0].useHeight) * 0.5f * ui.uiScale;
@@ -587,42 +673,43 @@ public class RenderContext {
     }
 
     public void useRegularBatch() {
-        if(arraySpriteBatch.isDrawing()) {
+        if (arraySpriteBatch.isDrawing()) {
             arraySpriteBatch.end();
             batch.begin();
-        } else if(!batch.isDrawing()) {
+        } else if (!batch.isDrawing()) {
             batch.begin();
         }
     }
 
     public void useArrayBatch() {
-        if(batch.isDrawing()) {
+        if (batch.isDrawing()) {
             batch.end();
             arraySpriteBatch.begin();
-        } else if(!arraySpriteBatch.isDrawing()) {
+        } else if (!arraySpriteBatch.isDrawing()) {
             arraySpriteBatch.begin();
         }
     }
 
     public void defaultArrayBatch() {
-        if(arraySpriteBatch.getShader() != DEFAULT_GLES3_ARRAY_SHADER) {
+        if (arraySpriteBatch.getShader() != DEFAULT_GLES3_ARRAY_SHADER) {
             arraySpriteBatch.setShader(DEFAULT_GLES3_ARRAY_SHADER);
         }
 
-        if(batch.isDrawing()) {
+        if (batch.isDrawing()) {
             batch.end();
             arraySpriteBatch.begin();
-        } else if(!arraySpriteBatch.isDrawing()) {
+        } else if (!arraySpriteBatch.isDrawing()) {
             arraySpriteBatch.begin();
         }
     }
 
     public void useBlinkShader() {
-        if(arraySpriteBatch.getShader() != blinkShader) arraySpriteBatch.setShader(blinkShader);
+        if (arraySpriteBatch.getShader() != blinkShader) arraySpriteBatch.setShader(blinkShader);
     }
 
     public void useRegularArrayShader() {
-        if(arraySpriteBatch.getShader() != DEFAULT_GLES3_ARRAY_SHADER) arraySpriteBatch.setShader(DEFAULT_GLES3_ARRAY_SHADER);
+        if (arraySpriteBatch.getShader() != DEFAULT_GLES3_ARRAY_SHADER)
+            arraySpriteBatch.setShader(DEFAULT_GLES3_ARRAY_SHADER);
     }
 
     public void bindAndSetSelection(Batch useBatch, float textureSize, Color c, boolean disableOutline) {
@@ -667,7 +754,7 @@ public class RenderContext {
     }
 
     private void disposeFBOs() {
-        if(mainFbo == null) return;
+        if (mainFbo == null) return;
         mainFbo.dispose();
         shadowFbo.dispose();
         waterReflectionFbo.dispose();
@@ -693,7 +780,7 @@ public class RenderContext {
     public void toggleFullscreen() {
         boolean fs = Gdx.graphics.isFullscreen();
 
-        if(fs) {
+        if (fs) {
             // Switch to windowed mode.
             Gdx.graphics.setUndecorated(false);
             Gdx.graphics.setWindowedMode(GameSettings.get().preferredWidth, GameSettings.get().preferredHeight);
@@ -704,7 +791,7 @@ public class RenderContext {
     }
 
     public void onResize(int width, int height) {
-        if(lastFBOWidth != width || lastFBOHeight != height) {
+        if (lastFBOWidth != width || lastFBOHeight != height) {
             disposeFBOs();
             createFBOs(width, height);
 
@@ -713,7 +800,7 @@ public class RenderContext {
 
             lightEngine.resize(width, height);
 
-            if(ExpoClientContainer.get() != null) ExpoClientContainer.get().getPlayerUI().onResize();
+            if (ExpoClientContainer.get() != null) ExpoClientContainer.get().getPlayerUI().onResize();
         }
 
         lastFBOWidth = width;
@@ -760,8 +847,9 @@ public class RenderContext {
         String fragment = Gdx.files.internal("shaders/" + key + ".fsh").readString();
         ShaderProgram shader = new ShaderProgram(vertex, fragment);
 
-        if(!shader.isCompiled()) log("Error while compiling shader " + key + " - Shader Error: " + shader.getLog());
-        if(!shader.getLog().isEmpty()) log("Warning while compiling shader " + key + " - Shader Warnings: " + shader.getLog());
+        if (!shader.isCompiled()) log("Error while compiling shader " + key + " - Shader Error: " + shader.getLog());
+        if (!shader.getLog().isEmpty())
+            log("Warning while compiling shader " + key + " - Shader Warnings: " + shader.getLog());
 
         return shader;
     }

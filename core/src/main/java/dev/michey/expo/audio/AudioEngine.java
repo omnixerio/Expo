@@ -45,7 +45,7 @@ public class AudioEngine {
 
     private void loadMaps() {
         String manifest = Gdx.files.internal("soundcatalog.txt").readString();
-        String[] lines = manifest.split("\\r\\n");
+        String[] lines = manifest.split("\\r\\n|\\r|\\n");
         SoundGroupDatabase database = null;
 
         for(String line : lines) {

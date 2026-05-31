@@ -9,42 +9,51 @@ public final class LightShader {
 		String gamma = ""; 
 		if (RayHandler.getGammaCorrection())
 			gamma = "sqrt";
-		
-		final String vertexShader = 
-				"attribute vec4 vertex_positions;\n" //
-				+ "attribute vec4 quad_colors;\n" //
-				+ "attribute float s;\n"
-				+ "uniform mat4 u_projTrans;\n" //
-				+ "varying vec4 v_color;\n" //
-				+ "varying float D;\n" //
-				+ "void main()\n" //
-				+ "{\n" //
-				+ "   v_color = s * quad_colors;\n" //
-				+ "   D = s;\n" //
-				+ "   gl_Position =  u_projTrans * vertex_positions;\n" //
-				+ "}\n";
-		final String fragmentShader = "#ifdef GL_ES\n" //
-			+ "precision lowp float;\n" //
-			+ "#define MED mediump\n"
-			+ "#else\n"
-			+ "#define MED \n"
-			+ "#endif\n" //
-				+ "varying vec4 v_color;\n" //
-				+ "varying float D;\n" //
-				+ "uniform float u_intensity;\n" //
-				+ "uniform vec3 u_falloff;"
-				+ "void main()\n"//
-				+ "{\n" //
-				+ "  float Attenuation = 1.0 / (u_falloff.x + (u_falloff.y*D) + (u_falloff.z*D*D));\n"
-				+ "  gl_FragColor = "+gamma+"(v_color * u_intensity) * Attenuation;\n" //
-				+ "}";
+
+        final String vertexShader =
+                """
+                        #version 330
+                        
+                        in vec4 vertex_positions;
+                        in vec4 quad_colors;
+                        in float s;
+                        uniform mat4 u_projTrans;
+                        out vec4 v_color;
+                        out float D;
+                        void main()
+                        {
+                           v_color = s * quad_colors;
+                           D = s;
+                           gl_Position =  u_projTrans * vertex_positions;
+                        }
+                        """;
+        final String fragmentShader = """
+                #version 330
+                
+                #ifdef GL_ES
+                precision lowp float;
+                #define MED mediump
+                #else
+                #define MED\s
+                #endif
+                in vec4 v_color;
+                in float D;
+                uniform float u_intensity;
+                uniform vec3 u_falloff;
+                
+                out vec4 fragColor;
+                
+                
+                void main()
+                {
+                  float Attenuation = 1.0 / (u_falloff.x + (u_falloff.y*D) + (u_falloff.z*D*D));
+                  fragColor = %s(v_color * u_intensity) * Attenuation;
+                }""".formatted(gamma);
 
 		ShaderProgram.pedantic = false;
 		ShaderProgram lightShader = new ShaderProgram(vertexShader,
 				fragmentShader);
 		if (!lightShader.isCompiled()) {
-			lightShader = new ShaderProgram("#version 330 core\n" +vertexShader,
-					"#version 330 core\n" +fragmentShader);
 			if(!lightShader.isCompiled()){
 				Gdx.app.log("ERROR", lightShader.getLog());
 			}

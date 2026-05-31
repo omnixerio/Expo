@@ -24,7 +24,10 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.utils.Os;
+import com.badlogic.gdx.utils.SharedLibraryLoader;
 import dev.michey.expo.logic.world.chunk.ClientChunk;
+import dev.michey.expo.render.RenderContext;
 
 import static com.badlogic.gdx.graphics.g2d.Sprite.SPRITE_SIZE;
 import static com.badlogic.gdx.graphics.g2d.Sprite.VERTEX_SIZE;
@@ -139,7 +142,9 @@ public class PolygonTileBatch implements PolygonBatch {
         triangles = new short[maxTriangles * 3];
 
         if (defaultShader == null) {
-            shader = SpriteBatch.createDefaultShader();
+            if (SharedLibraryLoader.os == Os.MacOsX)
+                shader = RenderContext.createShader();
+            else shader = SpriteBatch.createDefaultShader();
             ownsShader = true;
         } else
             shader = defaultShader;

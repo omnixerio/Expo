@@ -118,8 +118,8 @@ public class GameConsole {
         log("Registered " + resolver.getCommandMap().size() + " commands.");
 
         messageHistory = new LinkedList<>();
-        shapeRenderer = new ShapeRenderer();
-        batch = new SpriteBatch();
+        shapeRenderer = RenderContext.createShapeRenderer();
+        batch = RenderContext.createBatch();
         activeKeyList = new LinkedList<>();
         historyGlyph = new GlyphLayout();
         calcGlyph = new GlyphLayout();
