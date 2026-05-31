@@ -16,10 +16,8 @@ public class TileMergerV2 {
 
     private Pixmap allTilesPixmap;
 
-    private static final String OUTPUT_PATCH_FOLDER = "D:\\2021_09_25\\_SavedData\\SavedData06_12_19\\ExpoRes\\tiles\\_convertedPatchedTiles" + File.separator;
-
     public void prepare() {
-        TextureRegion tiles = ExpoAssets.get().findTile("tile_rock_1");
+        TextureRegion tiles = ExpoAssets.get().findTile("square16x16");
         Texture tex = tiles.getTexture();
         if(!tex.getTextureData().isPrepared()) tex.getTextureData().prepare();
         allTilesPixmap = tex.getTextureData().consumePixmap();
@@ -190,7 +188,7 @@ public class TileMergerV2 {
     }
 
     public void writeToFile(Pixmap localPixmap, String name) {
-        FileHandle fh = Gdx.files.absolute(OUTPUT_PATCH_FOLDER + name + ".png");
+        FileHandle fh = Gdx.files.local("sliceOutputMerged" + File.separator + name + ".png");
         PixmapIO.writePNG(fh, localPixmap);
     }
 

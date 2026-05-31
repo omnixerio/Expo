@@ -85,8 +85,6 @@ public class ExpoAssets {
         return itemSheet;
     }
 
-    private static final String OUTPUT_SPLIT_FOLDER = "D:\\2021_09_25\\_SavedData\\SavedData06_12_19\\ExpoRes\\tiles\\_convertedSheetToTile" + File.separator;
-
     public void slice(String tileName, boolean singleTile, int startX, int startY, int yTileHeight) {
         TextureRegion tiles = textureRegion("tileset");
         Texture tex = tiles.getTexture();
@@ -97,7 +95,7 @@ public class ExpoAssets {
             TextureRegion tileSingle = new TextureRegion(tiles, startX, startY, 16, yTileHeight);
             Pixmap localPixmap = new Pixmap(16, yTileHeight, pixmap.getFormat());
             localPixmap.drawPixmap(pixmap, 0, 0, tileSingle.getRegionX(), tileSingle.getRegionY(), 16, yTileHeight);
-            FileHandle fh = Gdx.files.absolute(OUTPUT_SPLIT_FOLDER + tileName + ".png");
+            FileHandle fh = Gdx.files.local("sliceOutput" + File.separator + tileName + ".png");
             PixmapIO.writePNG(fh, localPixmap);
             localPixmap.dispose();
         } else {
@@ -145,7 +143,7 @@ public class ExpoAssets {
                 TextureRegion toConsume = slices[i];
                 Pixmap localPixmap = new Pixmap(toConsume.getRegionWidth(), toConsume.getRegionHeight(), pixmap.getFormat());
                 localPixmap.drawPixmap(pixmap, 0, 0, toConsume.getRegionX(), toConsume.getRegionY(), toConsume.getRegionWidth(), toConsume.getRegionHeight());
-                FileHandle fh = Gdx.files.absolute(OUTPUT_SPLIT_FOLDER + tileName + "_" + i + ".png");
+                FileHandle fh = Gdx.files.local("sliceOutput" + File.separator + tileName + "_" + i + ".png");
                 PixmapIO.writePNG(fh, localPixmap);
                 localPixmap.dispose();
             }
