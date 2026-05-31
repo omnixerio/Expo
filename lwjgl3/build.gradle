@@ -34,8 +34,10 @@ dependencies {
 
 def os = System.properties['os.name'].toLowerCase()
 
+rootProject.mkdir("run")
+
 run {
-	workingDir = rootProject.file('assets').path
+	workingDir = rootProject.file('run').path
 	setIgnoreExitValue(true)
 
 	if (os.contains('mac')) {
