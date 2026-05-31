@@ -39,11 +39,6 @@ public class ExpoSteam {
     public static SteamFriendsCallback friendsCallback = new SteamFriendsCallback() {
 
         @Override
-        public void onSetPersonaNameResponse(boolean success, boolean localSuccess, SteamResult result) {
-            //ExpoLogger.log("onSetPersonaNameResponse(" + success + " " + localSuccess + " " + result.toString() + ")");
-        }
-
-        @Override
         public void onPersonaStateChange(SteamID steamID, SteamFriends.PersonaChange change) {
             //ExpoLogger.log("onPersonaStateChange(" + steamID.getAccountID() + " " + change.toString() + ")");
         }
