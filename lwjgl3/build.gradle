@@ -150,7 +150,7 @@ construo {
 	mainClass.set("dev.michey.expo.lwjgl3.Lwjgl3Launcher")
 	outputDir.set(rootProject.file("dist"))
 	jarTask.set("jar")
-	zipFolder.set("game-v1.0.0")
+	zipFolder.set("expo-v1.0.0")
 
 	jlink {
 		guessModulesFromJar.set(false)
