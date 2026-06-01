@@ -1,3 +1,5 @@
+import io.github.fourlastor.construo.Target
+
 buildscript {
 	repositories {
 		gradlePluginPortal()
@@ -10,6 +12,11 @@ buildscript {
 		}
 	}
 }
+
+plugins {
+	id("io.github.fourlastor.construo") version "2.1.0"
+}
+
 if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
 	apply plugin: 'org.beryx.runtime'
 }
@@ -135,4 +142,46 @@ installDist {
 
 distZip {
 	duplicatesStrategy DuplicatesStrategy.EXCLUDE
+}
+
+construo {
+	name.set("expo")
+	humanName.set("Expo")
+	mainClass.set("dev.michey.expo.lwjgl3.Lwjgl3Launcher")
+	outputDir.set(rootProject.file("dist"))
+	jarTask.set("jar")
+	zipFolder.set("game-v1.0.0")
+
+
+	targets {
+		create("linuxX64", Target.Linux) {
+			architecture.set(Target.Architecture.X86_64)
+			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK17U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz")
+		}
+		create("macM1", Target.MacOs) {
+			architecture.set(Target.Architecture.AARCH64)
+			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK17U-jdk_aarch64_mac_hotspot_21.0.3_9.tar.gz")
+			// macOS needs an identifier
+			identifier.set("dev.michey.expo")
+			// Optional but highly recommended; app version number
+			buildNumber.set("1.0.0")
+			versionNumber.set("1.0")
+			// Optional: icon for macOS
+			macIcon.set(project.file("path/to/mac-icon.icns"))
+			// Optional: set copyright
+			copyright.set("© 2025 Omnixerio Studios")
+			// Optional: set application category
+			categoryName.set("public.app-category.developer-tools")
+			// Optional: file to be used as entitlements file.
+			entitlementsFile.set(project.file("path/to/mac-entitlements.xml"))
+			// Optional: an xml file containing additional key-value pairs to be added to the Info.plist file
+			additionalInfoFile.set(project.file("path/to/mac-additional.xml"))
+		}
+		create("winX64", Target.Windows) {
+			architecture.set(Target.Architecture.X86_64)
+			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK17U-jdk_x64_windows_hotspot_21.0.3_9.zip")
+			// use executable with GPU hints, defaults to true
+			useGpuHint.set(false)
+		}
+	}
 }
