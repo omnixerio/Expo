@@ -160,7 +160,7 @@ public class RenderContext {
     /** Debug helpers */
     public boolean drawTileInfo = false;
     public boolean drawDebugHUD = true;
-    public boolean drawImGui = true;
+    public boolean drawImGui = System.getProperty("expo.imgui", "false").equals("true");
     public boolean drawShapes = false;
     public boolean drawHUD = true;
 
