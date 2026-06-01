@@ -152,15 +152,22 @@ construo {
 	jarTask.set("jar")
 	zipFolder.set("game-v1.0.0")
 
+	jlink {
+		guessModulesFromJar.set(false)
+		modules.add("jdk.unsupported")
+		modules.add("java.desktop")
+		modules.add("java.base")
+		modules.add("java.logging")
+	}
 
 	targets {
 		create("linuxX64", Target.Linux) {
 			architecture.set(Target.Architecture.X86_64)
-			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK17U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz")
+			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz")
 		}
 		create("macM1", Target.MacOs) {
 			architecture.set(Target.Architecture.AARCH64)
-			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK17U-jdk_aarch64_mac_hotspot_21.0.3_9.tar.gz")
+			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.3_9.tar.gz")
 			// macOS needs an identifier
 			identifier.set("dev.michey.expo")
 			// Optional but highly recommended; app version number
@@ -179,9 +186,10 @@ construo {
 		}
 		create("winX64", Target.Windows) {
 			architecture.set(Target.Architecture.X86_64)
-			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK17U-jdk_x64_windows_hotspot_21.0.3_9.zip")
+			jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_windows_hotspot_21.0.3_9.zip")
 			// use executable with GPU hints, defaults to true
-			useGpuHint.set(false)
+			useGpuHint.set(true)
+			useConsole.set(true)
 		}
 	}
 }
