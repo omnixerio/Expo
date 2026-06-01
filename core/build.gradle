@@ -20,4 +20,14 @@ dependencies {
 
 	// imgui
 	api "io.github.spair:imgui-java-app:$imguiVersion"
+
+	// Forces LWJGL3 to use at least $lwjgl3Version, currently 3.4.1, to avoid problems on Java 25 and up.
+	constraints{
+		implementation("org.lwjgl:lwjgl:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-glfw:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-jemalloc:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-openal:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-opengl:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-stb:$lwjgl3Version")
+	}
 }

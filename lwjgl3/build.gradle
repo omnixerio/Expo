@@ -24,12 +24,29 @@ sourceCompatibility = 21
 
 dependencies {
 	implementation "com.badlogicgames.gdx-controllers:gdx-controllers-desktop:$gdxControllersVersion"
-	implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+	implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion", {
+		exclude group: 'org.lwjgl', module: 'lwjgl'
+		exclude group: 'org.lwjgl', module: 'lwjgl-glfw'
+		exclude group: 'org.lwjgl', module: 'lwjgl-jemalloc'
+		exclude group: 'org.lwjgl', module: 'lwjgl-openal'
+		exclude group: 'org.lwjgl', module: 'lwjgl-opengl'
+		exclude group: 'org.lwjgl', module: 'lwjgl-stb'
+	}
 	implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
 	implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
 	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 	implementation "com.code-disaster.steamworks4j:steamworks4j:$s4jVersion"
 	implementation project(':core')
+
+	// Forces LWJGL3 to use at least $lwjgl3Version, currently 3.4.1, to avoid problems on Java 25 and up.
+	constraints{
+		implementation("org.lwjgl:lwjgl:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-glfw:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-jemalloc:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-openal:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-opengl:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-stb:$lwjgl3Version")
+	}
 }
 
 def os = System.properties['os.name'].toLowerCase()

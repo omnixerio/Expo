@@ -17,6 +17,16 @@ dependencies {
 	//api "com.github.KleeSup:KleeSwept:$kleesweptVersion"
 	api "com.github.oshi:oshi-core:6.4.9"
 	api "org.slf4j:slf4j-nop:2.0.9"
+
+	// Forces LWJGL3 to use at least $lwjgl3Version, currently 3.4.1, to avoid problems on Java 25 and up.
+	constraints{
+		implementation("org.lwjgl:lwjgl:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-glfw:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-jemalloc:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-openal:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-opengl:$lwjgl3Version")
+		implementation("org.lwjgl:lwjgl-stb:$lwjgl3Version")
+	}
 }
 
 jar {
